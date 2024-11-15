@@ -33,7 +33,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'  # Use your PHP version
+          php-version: '8.3'
           extensions: mbstring, pdo, pdo_mysql
           coverage: none
 
@@ -54,6 +54,14 @@ jobs:
 
       - name: Generate application key
         run: php artisan key:generate
+
+      - name: Download wait-for-it script
+        run: |
+          curl -sS https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o wait-for-it.sh
+          chmod +x wait-for-it.sh
+
+      - name: Wait for MySQL to be ready
+        run: ./wait-for-it.sh mysql:3306 --timeout=60 --strict -- echo "MySQL is up"
 
       - name: Run migrations
         run: php artisan migrate --force
