@@ -1,0 +1,48 @@
+version: "3"
+networks:
+  application:
+    driver: bridge
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hotel-management-system
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/app
+    depends_on:
+      - mysql
+    environment:
+      - DB_HOST=mysql
+      - DB_DATABASE=hotel-reservations-db
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+    networks:
+      - application
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - |
+        composer install
+        php artisan migrate
+        php artisan serve --host=0.0.0.0 --port=8000
+
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=hotel-reservations-db
+    networks:
+      - application
+    container_name: mymysqldb
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
